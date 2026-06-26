@@ -564,6 +564,7 @@
             <option value="name">상품명순</option>
             <option value="qty">재고 적은순</option>
             <option value="value">자본금 높은순</option>
+            <option value="location">재고위치순</option>
           </select>
         </div>
         <div class="table-wrap">
@@ -959,9 +960,19 @@
         if (sort === "name") return a.name.localeCompare(b.name, "ko");
         if (sort === "qty") return Number(a.qty) - Number(b.qty);
         if (sort === "value") return itemFinance(b).capitalByQty - itemFinance(a).capitalByQty;
+        if (sort === "location") return compareLocation(a.location, b.location);
         return String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
       });
       return rows;
+    }
+
+    function compareLocation(a, b) {
+      const left = String(a || "").trim();
+      const right = String(b || "").trim();
+      if (!left && !right) return 0;
+      if (!left) return 1;
+      if (!right) return -1;
+      return left.localeCompare(right, "ko", { numeric: true, sensitivity: "base" });
     }
 
     function render() {
