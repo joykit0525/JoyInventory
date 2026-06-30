@@ -17,7 +17,7 @@ const MOVEMENTS_SHEET = 'InventoryMovements';
 
 const ITEM_HEADERS = [
   'sku', 'imageUrl', 'name', 'category', 'location', 'qty', 'safety',
-  'purchaseAmount', 'landedUnitCost', 'marginRate', 'mallFeeRate', 'taxRate',
+  'purchaseAmount', 'landedUnitCost', 'marginRate', 'mallFeeRate', 'adFeeRate', 'taxRate',
   'unit', 'supplier', 'memo', 'updatedAt'
 ];
 

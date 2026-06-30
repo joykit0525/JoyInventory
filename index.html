@@ -246,6 +246,21 @@
     tbody tr:nth-child(even) td { background: #f7faff; }
     tbody tr:nth-child(even):hover td { background: #f2f7ff; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .inventory-table th.sale-price,
+    .inventory-table td.sale-price {
+      color: #1d4ed8;
+      font-weight: 800;
+    }
+    .inventory-table th.net-profit,
+    .inventory-table td.net-profit {
+      color: #92400e;
+      font-weight: 800;
+    }
+    .inventory-table th.settlement-amount,
+    .inventory-table td.settlement-amount {
+      color: #22c55e;
+      font-weight: 800;
+    }
     .qty-low {
       color: var(--bad);
       font-weight: 800;
@@ -526,9 +541,14 @@
             </label>
           </div>
           <div class="grid-2">
+            <label>광고료율(%)
+              <input id="adFeeRate" type="number" min="0" step="0.1" value="0" />
+            </label>
             <label>일반과세율(%)
               <input id="taxRate" type="number" min="0" step="0.1" value="10" />
             </label>
+          </div>
+          <div class="grid-2">
             <label>단위
               <input id="unit" placeholder="개" value="개" />
             </label>
@@ -593,10 +613,10 @@
                 <th class="num">재고수량</th>
                 <th class="num">매입금액</th>
                 <th class="num">입고단가</th>
-                <th class="num">판매단가</th>
-                <th class="num">정산금액</th>
+                <th class="num sale-price">판매단가</th>
+                <th class="num settlement-amount">정산금액</th>
                 <th class="num">마진율</th>
-                <th class="num">순이익</th>
+                <th class="num net-profit">순이익</th>
                 <th class="num">수량당 자본금</th>
                 <th></th>
               </tr>
@@ -703,6 +723,7 @@
     const percent = (n) => `${number(Number(n || 0).toFixed(1))}%`;
     const LANDED_COST_RATE = 0.45;
     const DEFAULT_SALES_FEE_RATE = 12;
+    const DEFAULT_AD_FEE_RATE = 0;
     const DEFAULT_TAX_RATE = 10;
 
     function calculateLandedUnitCost(purchaseAmount) {
@@ -738,8 +759,9 @@
       const landedUnitCost = calculateLandedUnitCost(purchaseAmount);
       const marginRate = Number(item.marginRate || 0);
       const mallFeeRate = Number(item.mallFeeRate ?? DEFAULT_SALES_FEE_RATE);
+      const adFeeRate = Number(item.adFeeRate ?? DEFAULT_AD_FEE_RATE);
       const taxRate = Number(item.taxRate ?? DEFAULT_TAX_RATE);
-      const deductionRate = Math.min(0.95, Math.max(0, (mallFeeRate + taxRate) / 100));
+      const deductionRate = Math.min(0.95, Math.max(0, (mallFeeRate + adFeeRate + taxRate) / 100));
       const targetProfit = landedUnitCost * (marginRate / 100);
       const salePrice = deductionRate >= 0.95 ? 0 : (landedUnitCost + targetProfit) / (1 - deductionRate);
       const settlementAmount = salePrice * (1 - deductionRate);
@@ -766,6 +788,7 @@
         purchaseAmount: $("purchaseAmount").value,
         marginRate: $("marginRate").value,
         mallFeeRate: $("mallFeeRate").value,
+        adFeeRate: $("adFeeRate").value,
         taxRate: $("taxRate").value
       });
       $("landedUnitCost").value = Math.round(finance.landedUnitCost);
@@ -788,6 +811,7 @@
         landedUnitCost: Number(item.landedUnitCost ?? item["입고단가"] ?? item.cost ?? item["원가"] ?? 0),
         marginRate: Number(item.marginRate ?? item["마진율"] ?? 30),
         mallFeeRate: Number(item.mallFeeRate ?? item["쇼핑몰 수수료율"] ?? item["수수료율"] ?? 10),
+        adFeeRate: Number(item.adFeeRate ?? item["광고료율"] ?? item["광고료"] ?? 0),
         taxRate: Number(item.taxRate ?? item["일반과세율"] ?? item["과세율"] ?? 10),
         unit: String(item.unit || item["단위"] || "개").trim(),
         supplier: String(item.supplier || item["거래처"] || "").trim(),
@@ -933,9 +957,9 @@
 
     async function seedSample() {
       const sample = [
-        { sku: "SKU-001", name: "히알루론산 수분 세럼", category: "뷰티", location: "A-01", qty: 42, safety: 12, purchaseAmount: 8000, landedUnitCost: 10000, marginRate: 35, mallFeeRate: 10, taxRate: 10, unit: "개", supplier: "JoyKit", memo: "쿠팡 인기 키워드 대응" },
-        { sku: "SKU-002", name: "비타-C 데일리 선크림", category: "뷰티", location: "A-02", qty: 8, safety: 15, purchaseAmount: 4800, landedUnitCost: 6000, marginRate: 32, mallFeeRate: 10, taxRate: 10, unit: "개", supplier: "JoyKit", memo: "안전재고 미달" },
-        { sku: "SKU-003", name: "방수 가을 윈드브레이커", category: "패션", location: "B-03", qty: 0, safety: 6, purchaseAmount: 48000, landedUnitCost: 55000, marginRate: 28, mallFeeRate: 11, taxRate: 10, unit: "개", supplier: "Outer Lab", memo: "품절" }
+        { sku: "SKU-001", name: "히알루론산 수분 세럼", category: "뷰티", location: "A-01", qty: 42, safety: 12, purchaseAmount: 8000, landedUnitCost: 10000, marginRate: 35, mallFeeRate: 10, adFeeRate: 0, taxRate: 10, unit: "개", supplier: "JoyKit", memo: "쿠팡 인기 키워드 대응" },
+        { sku: "SKU-002", name: "비타-C 데일리 선크림", category: "뷰티", location: "A-02", qty: 8, safety: 15, purchaseAmount: 4800, landedUnitCost: 6000, marginRate: 32, mallFeeRate: 10, adFeeRate: 0, taxRate: 10, unit: "개", supplier: "JoyKit", memo: "안전재고 미달" },
+        { sku: "SKU-003", name: "방수 가을 윈드브레이커", category: "패션", location: "B-03", qty: 0, safety: 6, purchaseAmount: 48000, landedUnitCost: 55000, marginRate: 28, mallFeeRate: 11, adFeeRate: 0, taxRate: 10, unit: "개", supplier: "Outer Lab", memo: "품절" }
       ];
       for (const item of sample) await put(STORE_ITEMS, normalizeItem(item));
     }
@@ -1009,10 +1033,10 @@
             <td class="num ${Number(item.qty) < 10 ? "qty-low" : ""}">${number(item.qty)} ${escapeHtml(item.unit || "")}</td>
             <td class="num">${money(item.purchaseAmount)}</td>
             <td class="num">${money(finance.landedUnitCost)}</td>
-            <td class="num">${money(finance.salePrice)}</td>
-            <td class="num">${money(finance.settlementAmount)}</td>
+            <td class="num sale-price">${money(finance.salePrice)}</td>
+            <td class="num settlement-amount">${money(finance.settlementAmount)}</td>
             <td class="num"><span class="pill ${marginClass(finance.marginRate)}">${percent(finance.marginRate)}</span></td>
-            <td class="num">${money(finance.netProfit)}</td>
+            <td class="num net-profit">${money(finance.netProfit)}</td>
             <td class="num">${money(finance.capitalByQty)}</td>
             <td>
               <div class="row-actions">
@@ -1070,6 +1094,7 @@
         landedUnitCost: calculateLandedUnitCost($("purchaseAmount").value),
         marginRate: $("marginRate").value,
         mallFeeRate: $("mallFeeRate").value,
+        adFeeRate: $("adFeeRate").value,
         taxRate: $("taxRate").value,
         unit: $("unit").value,
         supplier: $("supplier").value,
@@ -1098,6 +1123,7 @@
       $("landedUnitCost").value = calculateLandedUnitCost(item.purchaseAmount || item.cost || 0);
       $("marginRate").value = item.marginRate ?? 30;
       $("mallFeeRate").value = item.mallFeeRate ?? DEFAULT_SALES_FEE_RATE;
+      $("adFeeRate").value = item.adFeeRate ?? DEFAULT_AD_FEE_RATE;
       $("taxRate").value = item.taxRate ?? DEFAULT_TAX_RATE;
       $("unit").value = item.unit || "개";
       $("supplier").value = item.supplier;
@@ -1118,6 +1144,7 @@
       $("landedUnitCost").value = 0;
       $("marginRate").value = 30;
       $("mallFeeRate").value = DEFAULT_SALES_FEE_RATE;
+      $("adFeeRate").value = DEFAULT_AD_FEE_RATE;
       $("taxRate").value = DEFAULT_TAX_RATE;
       $("unit").value = "개";
       updateFinancePreview();
@@ -1212,7 +1239,7 @@
     }
 
     function exportCsv() {
-      const headers = ["상품 코드", "상품이미지", "상품명", "카테고리", "재고위치", "재고수량", "안전 재고", "매입금액", "입고단가", "마진율", "쇼핑몰 수수료율", "일반과세율", "판매단가", "정산금액", "순이익", "수량당 자본금", "단위", "거래처", "메모", "updatedAt"];
+      const headers = ["상품 코드", "상품이미지", "상품명", "카테고리", "재고위치", "재고수량", "안전 재고", "매입금액", "입고단가", "마진율", "쇼핑몰 수수료율", "광고료율", "일반과세율", "판매단가", "정산금액", "순이익", "수량당 자본금", "단위", "거래처", "메모", "updatedAt"];
       const rows = items.map((item) => [
         item.sku,
         item.imageUrl,
@@ -1225,6 +1252,7 @@
         itemFinance(item).landedUnitCost,
         itemFinance(item).marginRate,
         item.mallFeeRate,
+        item.adFeeRate ?? DEFAULT_AD_FEE_RATE,
         item.taxRate,
         itemFinance(item).salePrice,
         itemFinance(item).settlementAmount,
@@ -1377,7 +1405,7 @@
     $("searchInput").addEventListener("input", renderItems);
     $("statusFilter").addEventListener("change", renderItems);
     $("sortSelect").addEventListener("change", renderItems);
-    ["purchaseAmount", "marginRate", "mallFeeRate", "taxRate"].forEach((id) => {
+    ["purchaseAmount", "marginRate", "mallFeeRate", "adFeeRate", "taxRate"].forEach((id) => {
       $(id).addEventListener("input", updateFinancePreview);
     });
     $("clearMovementsBtn").addEventListener("click", async () => {

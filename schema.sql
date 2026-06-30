@@ -10,12 +10,16 @@ CREATE TABLE IF NOT EXISTS inventory_items (
   landed_unit_cost numeric(14, 2) NOT NULL DEFAULT 0,
   margin_rate numeric(8, 2) NOT NULL DEFAULT 30,
   mall_fee_rate numeric(8, 2) NOT NULL DEFAULT 10,
+  ad_fee_rate numeric(8, 2) NOT NULL DEFAULT 0,
   tax_rate numeric(8, 2) NOT NULL DEFAULT 10,
   unit text NOT NULL DEFAULT '개',
   supplier text NOT NULL DEFAULT '',
   memo text NOT NULL DEFAULT '',
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE inventory_items
+  ADD COLUMN IF NOT EXISTS ad_fee_rate numeric(8, 2) NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS inventory_movements (
   id uuid PRIMARY KEY,

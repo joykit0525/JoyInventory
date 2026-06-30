@@ -18,6 +18,7 @@ const host = process.env.HOST || "0.0.0.0";
 const corsOrigin = process.env.CORS_ORIGIN || "*";
 const landedCostRate = 0.45;
 const defaultSalesFeeRate = 12;
+const defaultAdFeeRate = 0;
 const defaultTaxRate = 10;
 
 if (!process.env.DATABASE_URL) {
@@ -69,6 +70,7 @@ const itemColumns = [
   "landed_unit_cost",
   "margin_rate",
   "mall_fee_rate",
+  "ad_fee_rate",
   "tax_rate",
   "unit",
   "supplier",
@@ -99,6 +101,7 @@ function normalizeItem(raw = {}) {
     landedUnitCost: calculateLandedUnitCost(purchaseAmount),
     marginRate: toNumber(raw.marginRate, 30),
     mallFeeRate: toNumber(raw.mallFeeRate, defaultSalesFeeRate),
+    adFeeRate: toNumber(raw.adFeeRate, defaultAdFeeRate),
     taxRate: toNumber(raw.taxRate, defaultTaxRate),
     unit: String(raw.unit || "개").trim(),
     supplier: String(raw.supplier || "").trim(),
@@ -120,6 +123,7 @@ function rowToItem(row) {
     landedUnitCost: Number(row.landed_unit_cost),
     marginRate: Number(row.margin_rate),
     mallFeeRate: Number(row.mall_fee_rate),
+    adFeeRate: Number(row.ad_fee_rate),
     taxRate: Number(row.tax_rate),
     unit: row.unit,
     supplier: row.supplier,
@@ -166,6 +170,7 @@ async function upsertItem(item, client = pool) {
     item.landedUnitCost,
     item.marginRate,
     item.mallFeeRate,
+    item.adFeeRate,
     item.taxRate,
     item.unit,
     item.supplier,
@@ -188,6 +193,7 @@ async function upsertItem(item, client = pool) {
         landed_unit_cost = EXCLUDED.landed_unit_cost,
         margin_rate = EXCLUDED.margin_rate,
         mall_fee_rate = EXCLUDED.mall_fee_rate,
+        ad_fee_rate = EXCLUDED.ad_fee_rate,
         tax_rate = EXCLUDED.tax_rate,
         unit = EXCLUDED.unit,
         supplier = EXCLUDED.supplier,
