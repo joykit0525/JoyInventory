@@ -452,6 +452,70 @@
       main, .topbar { padding-left: 14px; padding-right: 14px; }
       .cards, .grid-2 { grid-template-columns: 1fr; }
     }
+    /* JoyInsight dark visual system */
+    :root {
+      color-scheme: dark;
+      --bg: #0b0f19;
+      --panel: #111827;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --line: rgba(148, 163, 184, 0.16);
+      --primary: #6366f1;
+      --primary-soft: rgba(99, 102, 241, 0.14);
+      --good: #34d399;
+      --warn: #fbbf24;
+      --bad: #fb7185;
+      --cyan: #22d3ee;
+      --shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+    }
+    body {
+      background:
+        radial-gradient(circle at 48% -120px, rgba(99, 102, 241, 0.20), transparent 390px),
+        var(--bg);
+    }
+    header { background: rgba(11, 15, 25, 0.88); }
+    .brand-mark {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      box-shadow: 0 8px 22px rgba(99, 102, 241, 0.32);
+    }
+    button, .button { background: #172033; }
+    button:hover, .button:hover { border-color: #818cf8; background: #1e293b; }
+    button.primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      box-shadow: 0 8px 18px rgba(99, 102, 241, 0.24);
+    }
+    button.danger {
+      border-color: rgba(251, 113, 133, 0.35);
+      background: rgba(251, 113, 133, 0.08);
+    }
+    .panel, .card { border-color: var(--line); border-radius: 12px; }
+    .card { background: linear-gradient(145deg, #111827, #151e30); }
+    label { color: #cbd5e1; }
+    input, select, textarea, .finance-preview { background: #0f172a; border-color: var(--line); }
+    .filters { background: rgba(15, 23, 42, 0.7); }
+    th { background: #182238; color: #cbd5e1; }
+    tr:hover td { background: rgba(99, 102, 241, 0.09); }
+    tbody tr:nth-child(even) td { background: rgba(30, 41, 59, 0.42); }
+    tbody tr:nth-child(even):hover td { background: rgba(99, 102, 241, 0.12); }
+    .pill.good { background: rgba(52, 211, 153, 0.12); }
+    .pill.warn { background: rgba(251, 191, 36, 0.12); }
+    .pill.bad { background: rgba(251, 113, 133, 0.12); }
+    input[readonly], .thumb-empty, .image-preview, .dialog-foot { background: #0f172a; }
+    dialog { background: var(--panel); color: var(--text); }
+    dialog::backdrop { background: rgba(2, 6, 23, 0.72); }
+    .notice {
+      border-color: rgba(99, 102, 241, 0.35);
+      background: rgba(99, 102, 241, 0.10);
+      color: #c7d2fe;
+    }
+    /* Inventory rows grow with the page; no hidden 12-row viewport. */
+    .inventory-panel { min-height: 0; display: block; }
+    .inventory-panel .table-wrap {
+      max-height: none;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: visible;
+    }
   </style>
 </head>
 <body>
@@ -1079,6 +1143,10 @@
       const sku = $("sku").value.trim();
       if (!sku) return alert("SKU를 입력하세요.");
       const existingSku = $("editingSku").value;
+      const duplicate = items.some((item) => item.sku === sku && item.sku !== existingSku);
+      if (duplicate) {
+        return alert("이미 등록된 SKU입니다. 새 품목은 다른 SKU를 입력해 주세요.");
+      }
       if (existingSku && existingSku !== sku) await remove(STORE_ITEMS, existingSku);
       const selectedImage = $("imageFile").files?.[0];
       const imageUrl = selectedImage ? await readImageFile(selectedImage) : $("imageUrl").value;
