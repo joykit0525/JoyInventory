@@ -508,14 +508,19 @@
       background: rgba(99, 102, 241, 0.10);
       color: #c7d2fe;
     }
-    /* Inventory rows grow with the page; no hidden 12-row viewport. */
-    .inventory-panel { min-height: 0; display: block; }
+    /* Keep controls fixed and scroll only the inventory rows after 14 items. */
+    .inventory-panel { min-height: 0; display: flex; }
     .inventory-panel .table-wrap {
-      max-height: none;
+      flex: none;
+      max-height: 1013px; /* 47px header + 14 rows × 69px */
       min-height: 0;
-      overflow-x: auto;
-      overflow-y: visible;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
     }
+    .inventory-table thead tr { height: 47px; }
+    .inventory-table tbody tr,
+    .inventory-table tbody td { height: 69px; }
   </style>
 </head>
 <body>
