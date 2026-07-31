@@ -412,6 +412,27 @@
     }
     dialog::backdrop { background: rgba(15, 23, 42, 0.45); }
     .dialog-body { padding: 18px; }
+    .movement-product-picker {
+      display: grid;
+      gap: 8px;
+    }
+    .movement-product-picker label {
+      display: grid;
+      gap: 6px;
+    }
+    .movement-product-picker select {
+      min-height: 150px;
+      padding: 4px;
+    }
+    .movement-product-picker select option {
+      padding: 9px 10px;
+      border-radius: 5px;
+    }
+    .movement-search-status {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
     .dialog-foot {
       display: flex;
       justify-content: flex-end;
@@ -723,9 +744,20 @@
     <div class="panel-head"><h3>입고/출고/조정 등록</h3></div>
     <form id="movementForm">
       <div class="dialog-body stack">
-        <label>상품
-          <select id="movementSku" required></select>
-        </label>
+        <div class="movement-product-picker">
+          <label>상품명 또는 상품코드 검색
+            <input
+              id="movementProductSearch"
+              type="search"
+              placeholder="예: 선크림 또는 SKU-001"
+              autocomplete="off"
+            />
+          </label>
+          <label>검색 결과
+            <select id="movementSku" size="6" required aria-describedby="movementSearchStatus"></select>
+          </label>
+          <div id="movementSearchStatus" class="movement-search-status" aria-live="polite"></div>
+        </div>
         <div class="grid-2">
           <label>구분
             <select id="movementType">
@@ -1117,11 +1149,38 @@
         `;
       }).join("") || `<tr><td colspan="13" class="muted">조건에 맞는 재고가 없습니다.</td></tr>`;
 
-      $("movementSku").innerHTML = items
-        .slice()
-        .sort((a, b) => a.name.localeCompare(b.name, "ko"))
+      renderMovementProducts();
+    }
+
+    function movementSearchResults() {
+      const keyword = $("movementProductSearch").value.trim().toLocaleLowerCase("ko");
+      return items
+        .filter((item) => {
+          if (!keyword) return true;
+          return [item.sku, item.name]
+            .some((value) => String(value || "").toLocaleLowerCase("ko").includes(keyword));
+        })
+        .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+    }
+
+    function renderMovementProducts() {
+      const select = $("movementSku");
+      const previousSku = select.value;
+      const results = movementSearchResults();
+      select.innerHTML = results
         .map((item) => `<option value="${escapeAttr(item.sku)}">${escapeHtml(item.sku)} · ${escapeHtml(item.name)}</option>`)
         .join("");
+
+      if (results.some((item) => item.sku === previousSku)) {
+        select.value = previousSku;
+      } else if (results.length) {
+        select.value = results[0].sku;
+      }
+
+      select.disabled = results.length === 0;
+      $("movementSearchStatus").textContent = results.length
+        ? `${number(results.length)}개 상품이 검색되었습니다. 등록할 상품을 선택하세요.`
+        : "일치하는 상품이 없습니다. 상품명이나 상품코드를 다시 입력하세요.";
     }
 
     function renderMovements() {
@@ -1452,9 +1511,12 @@
     });
     $("movementBtn").addEventListener("click", () => {
       if (!items.length) return alert("먼저 품목을 등록하세요.");
-      renderItems();
+      $("movementProductSearch").value = "";
+      renderMovementProducts();
       $("movementDialog").showModal();
+      $("movementProductSearch").focus();
     });
+    $("movementProductSearch").addEventListener("input", renderMovementProducts);
     $("settingsBtn").addEventListener("click", () => $("settingsDialog").showModal());
     $("saveSettingsBtn").addEventListener("click", saveSettings);
     $("clearRemoteBtn").addEventListener("click", () => {
